@@ -22,23 +22,29 @@ export async function getCustomers(): Promise<Customer[]> {
   // ========================================================================
   //
   // Kode di bawah ini adalah CONTOH ILUSTRATIF. Anda perlu menyesuaikannya.
+  let conn: RouterOSAPI | null = null;
   try {
-    const conn = new RouterOSAPI({
+    conn = new RouterOSAPI({
         // GANTI DENGAN IP PRIVAT ROUTER ANDA DI DALAM JARINGAN VPN
         host: '10.10.20.1', // CONTOH: IP Gateway VPN di MikroTik
         user: 'ubrin',           // GANTI DENGAN USER API ANDA
         password: '12b12bb', // GANTI DENGAN PASSWORD ANDA
         port: 8728,          // Port API, default 8728, atau 8729 untuk ssl
-        timeout: 15,         // Timeout koneksi dalam detik
+        // timeout di sini adalah untuk socket setelah terhubung, bukan timeout koneksi
+        timeout: 15,
     });
 
-    await conn.connect();
+    // Implementasi timeout koneksi manual
+    const connectionPromise = conn.connect();
+    const timeoutPromise = new Promise((_, reject) => 
+      setTimeout(() => reject(new Error('Connection timed out after 15 seconds')), 15000)
+    );
+
+    await Promise.race([connectionPromise, timeoutPromise]);
     
     // Contoh mengambil data dari 'ip hotspot active'
     const hotspotUsers = await conn.write('/ip/hotspot/active/print');
     
-    await conn.close();
-
     // Ubah data dari router menjadi format yang dimengerti aplikasi
     const formattedCustomers: Customer[] = hotspotUsers.map((user: any, index: number) => ({
         id: user['.id'] || `usr_${index}`,
@@ -59,5 +65,9 @@ export async function getCustomers(): Promise<Customer[]> {
     // import { customers as staticCustomers } from './data';
     // return staticCustomers; // Anda bisa gunakan ini untuk fallback ke data statis
     return []; 
+  } finally {
+      if (conn && conn.connected) {
+          await conn.close();
+      }
   }
 }
