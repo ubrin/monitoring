@@ -12,16 +12,18 @@ import {
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { ArrowUpDown, BarChart2, Search } from 'lucide-react';
-import { customers, type Customer } from '@/lib/data';
+import { type Customer } from '@/lib/data';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
 
-type SortKey = keyof Customer;
+type SortKey = keyof Omit<Customer, 'status'>;
 
 export default function CustomerTable({
+  customers,
   onCustomerSelect,
   selectedCustomerId,
 }: {
+  customers: Customer[];
   onCustomerSelect: (customer: Customer) => void;
   selectedCustomerId?: string;
 }) {
@@ -32,7 +34,6 @@ export default function CustomerTable({
   } | null>({ key: 'username', direction: 'ascending' });
 
   const handleSort = (key: SortKey) => {
-    if (key === 'status') return;
     let direction: 'ascending' | 'descending' = 'ascending';
     if (
       sortConfig &&
@@ -58,7 +59,7 @@ export default function CustomerTable({
       });
     }
     return sortableItems;
-  }, [sortConfig]);
+  }, [customers, sortConfig]);
 
   const filteredCustomers = sortedCustomers.filter(
     (customer) =>
@@ -85,14 +86,14 @@ export default function CustomerTable({
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead onClick={() => handleSort('username')}>
-                <Button variant="ghost" size="sm">
+              <TableHead>
+                <Button variant="ghost" size="sm" onClick={() => handleSort('username')}>
                   Username
                   <ArrowUpDown className="ml-2 h-4 w-4" />
                 </Button>
               </TableHead>
-              <TableHead onClick={() => handleSort('ipAddress')}>
-                <Button variant="ghost" size="sm">
+              <TableHead>
+                <Button variant="ghost" size="sm" onClick={() => handleSort('ipAddress')}>
                   IP Address
                   <ArrowUpDown className="ml-2 h-4 w-4" />
                 </Button>
