@@ -6,40 +6,65 @@
 // Then, you can use it to connect to your router and fetch data.
 
 import type { Customer } from './data';
+// Anda mungkin perlu mengimpor library yang Anda install, contoh:
+// import { RouterOSAPI } from 'node-routeros';
+
+// --- CONTOH: Ganti dengan data asli Anda ---
+// Ini adalah data simulasi yang akan kita gunakan sampai koneksi asli dibuat.
 import { customers as staticCustomers } from './data';
 
-// --- PLACEHOLDER ---
-// This function simulates fetching data from a MikroTik router.
-// Replace the content of this function with your actual API call.
+// Ini adalah fungsi utama yang akan dipanggil oleh aplikasi Anda.
 export async function getCustomers(): Promise<Customer[]> {
   console.log(
-    'Fetching customer data... (simulated)'
+    'Fetching customer data...'
   );
 
-  // **TODO**: Replace this with your actual MikroTik API call.
-  // You'll need to connect to your router and fetch the list of active users,
-  // their IP addresses, MAC addresses, and current bandwidth usage.
-  // The data you fetch should be mapped to the `Customer` type structure.
+  // ========================================================================
+  // TODO: GANTI BAGIAN INI DENGAN KONEKSI MIKROTIK ASLI ANDA
+  // ========================================================================
+  //
+  // Kode di bawah ini adalah CONTOH ILUSTRATIF. Anda perlu menyesuaikannya.
+  /*
+  try {
+    const conn = new RouterOSAPI({
+        host: '192.168.88.1', // <-- GANTI DENGAN IP ROUTER ANDA
+        user: 'admin',        // <-- GANTI DENGAN USERNAME ANDA
+        password: 'password', // <-- GANTI DENGAN PASSWORD ANDA
+    });
 
-  // For now, we return the static data after a short delay to simulate a network request.
+    await conn.connect();
+    
+    // Contoh mengambil data dari 'ip hotspot active'
+    const hotspotUsers = await conn.write('/ip/hotspot/active/print');
+    
+    conn.close();
+
+    // Ubah data dari router menjadi format yang dimengerti aplikasi
+    const formattedCustomers: Customer[] = hotspotUsers.map((user: any, index: number) => ({
+        id: user['.id'] || `usr_${index}`,
+        username: user.user,
+        ipAddress: user['address'],
+        macAddress: user['mac-address'],
+        // Anda mungkin perlu logika tambahan untuk mendapatkan data upload/download
+        upload: 0, 
+        download: 0,
+        status: 'online',
+    }));
+
+    return formattedCustomers;
+
+  } catch (error) {
+    console.error("Gagal terhubung atau mengambil data dari MikroTik:", error);
+    // Jika gagal, kita bisa kembalikan data kosong atau data statis
+    return []; 
+  }
+  */
+
+  // Untuk sekarang, kita kembalikan data statis setelah jeda 1 detik untuk simulasi.
+  // HAPUS ATAU BERI KOMENTAR BAGIAN DI BAWAH INI SETELAH KONEKSI ASLI BERHASIL.
   return new Promise(resolve => {
     setTimeout(() => {
       resolve(staticCustomers);
-    }, 1000); // 1 second delay
+    }, 1000); // 1 detik jeda
   });
 }
-
-// You might also want to add functions for other actions, like:
-/*
-export async function disconnectCustomer(customerId: string): Promise<void> {
-  // TODO: Implement the logic to disconnect a customer via the MikroTik API.
-  console.log(`Disconnecting customer ${customerId}... (simulated)`);
-  return new Promise(resolve => setTimeout(resolve, 500));
-}
-
-export async function updateCustomerDetails(customer: Customer): Promise<Customer> {
-  // TODO: Implement the logic to update customer details on the MikroTik router.
-  console.log(`Updating customer ${customer.username}... (simulated)`);
-  return new Promise(resolve => setTimeout(() => resolve(customer), 500));
-}
-*/
