@@ -91,7 +91,12 @@ export default function CustomerTable({
                   <ArrowUpDown className="ml-2 h-4 w-4" />
                 </Button>
               </TableHead>
-              <TableHead>IP Address</TableHead>
+              <TableHead onClick={() => handleSort('ipAddress')}>
+                <Button variant="ghost" size="sm">
+                  IP Address
+                  <ArrowUpDown className="ml-2 h-4 w-4" />
+                </Button>
+              </TableHead>
               <TableHead className="hidden md:table-cell">MAC Address</TableHead>
               <TableHead className="text-center">
                 <div className="flex items-center justify-center gap-2">
