@@ -27,12 +27,10 @@ const nextConfig: NextConfig = {
   webpack: (config, { isServer }) => {
     // This is to fix a bug with node-routeros
     // that tries to import a dev dependency.
-    if (!isServer) {
-      config.resolve.fallback = {
-        ...config.resolve.fallback,
-        'source-map-support': false,
-      };
-    }
+    config.resolve.fallback = {
+      ...config.resolve.fallback,
+      'source-map-support': false,
+    };
     return config;
   },
 };
