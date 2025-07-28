@@ -1,6 +1,6 @@
 'use client';
 
-import { Bot, LayoutDashboard, Users, Wifi } from 'lucide-react';
+import { LayoutDashboard, Users, Wifi } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { Menu } from 'lucide-react';
@@ -17,12 +17,6 @@ const NavLinks = () => (
              <a href="#">
                 <Users className="h-5 w-5" />
                 <span>Customers</span>
-            </a>
-        </Button>
-         <Button variant="ghost" className="justify-start gap-3" asChild>
-             <a href="#">
-                <Bot className="h-5 w-5" />
-                <span>Predictions</span>
             </a>
         </Button>
     </nav>
