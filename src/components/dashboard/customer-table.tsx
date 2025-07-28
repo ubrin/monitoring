@@ -68,7 +68,7 @@ export default function CustomerTable({
   );
 
   return (
-    <Card className="flex-1 flex flex-col">
+    <Card className="flex-1 flex flex-col h-full">
       <CardHeader>
         <CardTitle>Active Customers</CardTitle>
         <div className="relative mt-2">
