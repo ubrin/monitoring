@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import type { Customer } from '@/lib/data';
-import { getCustomers } from '@/lib/mikrotik';
+import { getCustomers } from '@/app/actions';
 import Sidebar from '@/components/layout/sidebar';
 import CustomerTable from '@/components/dashboard/customer-table';
 import { CustomerDetailSheet } from '@/components/dashboard/customer-detail-sheet';
