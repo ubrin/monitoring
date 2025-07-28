@@ -13,7 +13,6 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { ArrowUpDown, BarChart2, Search } from 'lucide-react';
 import { customers, type Customer } from '@/lib/data';
-import { StatusIndicator } from './status-indicator';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
 
@@ -33,6 +32,7 @@ export default function CustomerTable({
   } | null>({ key: 'username', direction: 'ascending' });
 
   const handleSort = (key: SortKey) => {
+    if (key === 'status') return;
     let direction: 'ascending' | 'descending' = 'ascending';
     if (
       sortConfig &&
@@ -98,12 +98,6 @@ export default function CustomerTable({
                     <BarChart2 className="h-4 w-4" /> Usage (Mbps)
                 </div>
               </TableHead>
-              <TableHead onClick={() => handleSort('status')}>
-                <Button variant="ghost" size="sm">
-                  Status
-                  <ArrowUpDown className="ml-2 h-4 w-4" />
-                </Button>
-              </TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -116,14 +110,16 @@ export default function CustomerTable({
                   selectedCustomerId === customer.id && 'bg-accent'
                 )}
               >
-                <TableCell className="font-medium">{customer.username}</TableCell>
+                <TableCell className="font-medium">
+                    <div className="flex items-center gap-3">
+                        <span className={cn("h-2.5 w-2.5 rounded-full", customer.status === 'online' ? 'bg-green-500' : 'bg-red-500')}></span>
+                        {customer.username}
+                    </div>
+                </TableCell>
                 <TableCell>{customer.ipAddress}</TableCell>
                 <TableCell className="hidden md:table-cell">{customer.macAddress}</TableCell>
                 <TableCell className="text-center">
                   {customer.download.toFixed(2)} / {customer.upload.toFixed(2)}
-                </TableCell>
-                <TableCell>
-                  <StatusIndicator status={customer.status} />
                 </TableCell>
               </TableRow>
             ))}
