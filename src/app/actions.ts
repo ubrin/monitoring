@@ -25,10 +25,10 @@ export async function getCustomers(): Promise<Customer[]> {
   try {
     const conn = new RouterOSAPI({
         // GANTI DENGAN IP PRIVAT ROUTER ANDA DI DALAM JARINGAN VPN
-        host: '192.168.89.1', // CONTOH: IP Gateway VPN di MikroTik
+        host: '10.10.20.1', // CONTOH: IP Gateway VPN di MikroTik
         user: 'ubrin',           // GANTI DENGAN USER API ANDA
         password: '12b12bb', // GANTI DENGAN PASSWORD ANDA
-        port: 8728,              // Port API, default 8728, atau 8729 untuk ssl
+        port: 432,              // Port API, default 8728, atau 8729 untuk ssl
     });
 
     await conn.connect();
