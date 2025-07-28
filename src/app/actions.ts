@@ -28,7 +28,8 @@ export async function getCustomers(): Promise<Customer[]> {
         host: '10.10.20.1', // CONTOH: IP Gateway VPN di MikroTik
         user: 'ubrin',           // GANTI DENGAN USER API ANDA
         password: '12b12bb', // GANTI DENGAN PASSWORD ANDA
-        port: 432,              // Port API, default 8728, atau 8729 untuk ssl
+        port: 8728,          // Port API, default 8728, atau 8729 untuk ssl
+        timeout: 15,         // Timeout koneksi dalam detik
     });
 
     await conn.connect();
