@@ -1,0 +1,135 @@
+'use client';
+
+import * as React from 'react';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { ArrowUpDown, BarChart2, Search } from 'lucide-react';
+import { customers, type Customer } from '@/lib/data';
+import { StatusIndicator } from './status-indicator';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { cn } from '@/lib/utils';
+
+type SortKey = keyof Customer;
+
+export default function CustomerTable({
+  onCustomerSelect,
+  selectedCustomerId,
+}: {
+  onCustomerSelect: (customer: Customer) => void;
+  selectedCustomerId?: string;
+}) {
+  const [filter, setFilter] = React.useState('');
+  const [sortConfig, setSortConfig] = React.useState<{
+    key: SortKey;
+    direction: 'ascending' | 'descending';
+  } | null>({ key: 'username', direction: 'ascending' });
+
+  const handleSort = (key: SortKey) => {
+    let direction: 'ascending' | 'descending' = 'ascending';
+    if (
+      sortConfig &&
+      sortConfig.key === key &&
+      sortConfig.direction === 'ascending'
+    ) {
+      direction = 'descending';
+    }
+    setSortConfig({ key, direction });
+  };
+
+  const sortedCustomers = React.useMemo(() => {
+    let sortableItems = [...customers];
+    if (sortConfig !== null) {
+      sortableItems.sort((a, b) => {
+        if (a[sortConfig.key] < b[sortConfig.key]) {
+          return sortConfig.direction === 'ascending' ? -1 : 1;
+        }
+        if (a[sortConfig.key] > b[sortConfig.key]) {
+          return sortConfig.direction === 'ascending' ? 1 : -1;
+        }
+        return 0;
+      });
+    }
+    return sortableItems;
+  }, [sortConfig]);
+
+  const filteredCustomers = sortedCustomers.filter(
+    (customer) =>
+      customer.username.toLowerCase().includes(filter.toLowerCase()) ||
+      customer.ipAddress.includes(filter) ||
+      customer.macAddress.toLowerCase().includes(filter.toLowerCase())
+  );
+
+  return (
+    <Card className="flex-1 flex flex-col">
+      <CardHeader>
+        <CardTitle>Active Customers</CardTitle>
+        <div className="relative mt-2">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Filter by name, IP, or MAC..."
+            value={filter}
+            onChange={(e) => setFilter(e.target.value)}
+            className="pl-10"
+          />
+        </div>
+      </CardHeader>
+      <CardContent className="flex-1 overflow-y-auto">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead onClick={() => handleSort('username')}>
+                <Button variant="ghost" size="sm">
+                  Username
+                  <ArrowUpDown className="ml-2 h-4 w-4" />
+                </Button>
+              </TableHead>
+              <TableHead>IP Address</TableHead>
+              <TableHead className="hidden md:table-cell">MAC Address</TableHead>
+              <TableHead className="text-center">
+                <div className="flex items-center justify-center gap-2">
+                    <BarChart2 className="h-4 w-4" /> Usage (Mbps)
+                </div>
+              </TableHead>
+              <TableHead onClick={() => handleSort('status')}>
+                <Button variant="ghost" size="sm">
+                  Status
+                  <ArrowUpDown className="ml-2 h-4 w-4" />
+                </Button>
+              </TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {filteredCustomers.map((customer) => (
+              <TableRow
+                key={customer.id}
+                onClick={() => onCustomerSelect(customer)}
+                className={cn(
+                  'cursor-pointer',
+                  selectedCustomerId === customer.id && 'bg-accent'
+                )}
+              >
+                <TableCell className="font-medium">{customer.username}</TableCell>
+                <TableCell>{customer.ipAddress}</TableCell>
+                <TableCell className="hidden md:table-cell">{customer.macAddress}</TableCell>
+                <TableCell className="text-center">
+                  {customer.download.toFixed(2)} / {customer.upload.toFixed(2)}
+                </TableCell>
+                <TableCell>
+                  <StatusIndicator status={customer.status} />
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </CardContent>
+    </Card>
+  );
+}
