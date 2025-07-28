@@ -7,7 +7,7 @@
 
 import type { Customer } from './data';
 // Anda mungkin perlu mengimpor library yang Anda install, contoh:
-// import { RouterOSAPI } from 'node-routeros';
+import { RouterOSAPI } from 'node-routeros';
 
 // --- CONTOH: Ganti dengan data asli Anda ---
 // Ini adalah data simulasi yang akan kita gunakan sampai koneksi asli dibuat.
@@ -16,7 +16,7 @@ import { customers as staticCustomers } from './data';
 // Ini adalah fungsi utama yang akan dipanggil oleh aplikasi Anda.
 export async function getCustomers(): Promise<Customer[]> {
   console.log(
-    'Fetching customer data...'
+    'Fetching customer data from MikroTik...'
   );
 
   // ========================================================================
@@ -24,12 +24,12 @@ export async function getCustomers(): Promise<Customer[]> {
   // ========================================================================
   //
   // Kode di bawah ini adalah CONTOH ILUSTRATIF. Anda perlu menyesuaikannya.
-  /*
   try {
     const conn = new RouterOSAPI({
-        host: '192.168.88.1', // <-- GANTI DENGAN IP ROUTER ANDA
-        user: 'admin',        // <-- GANTI DENGAN USERNAME ANDA
-        password: 'password', // <-- GANTI DENGAN PASSWORD ANDA
+        host: '103.160.179.49', // GANTI DENGAN IP ROUTER ANDA
+        user: 'ubrin',           // GANTI DENGAN USER API ANDA
+        password: '12b12bb', // GANTI DENGAN PASSWORD ANDA
+        port: 8292,              // Port API, default 8728, atau 8729 untuk ssl
     });
 
     await conn.connect();
@@ -37,7 +37,7 @@ export async function getCustomers(): Promise<Customer[]> {
     // Contoh mengambil data dari 'ip hotspot active'
     const hotspotUsers = await conn.write('/ip/hotspot/active/print');
     
-    conn.close();
+    await conn.close();
 
     // Ubah data dari router menjadi format yang dimengerti aplikasi
     const formattedCustomers: Customer[] = hotspotUsers.map((user: any, index: number) => ({
@@ -56,15 +56,8 @@ export async function getCustomers(): Promise<Customer[]> {
   } catch (error) {
     console.error("Gagal terhubung atau mengambil data dari MikroTik:", error);
     // Jika gagal, kita bisa kembalikan data kosong atau data statis
+    // return staticCustomers; // Anda bisa gunakan ini untuk fallback ke data statis
     return []; 
   }
-  */
 
-  // Untuk sekarang, kita kembalikan data statis setelah jeda 1 detik untuk simulasi.
-  // HAPUS ATAU BERI KOMENTAR BAGIAN DI BAWAH INI SETELAH KONEKSI ASLI BERHASIL.
-  return new Promise(resolve => {
-    setTimeout(() => {
-      resolve(staticCustomers);
-    }, 1000); // 1 detik jeda
-  });
 }
