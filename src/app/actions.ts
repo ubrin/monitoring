@@ -44,11 +44,11 @@ export async function getCustomers(): Promise<Customer[]> {
   let conn: RouterOSAPI | null = null;
   try {
     conn = new RouterOSAPI({
-        // GANTI DENGAN IP PRIVAT ROUTER ANDA DI DALAM JARINGAN VPN
-        host: '10.10.20.1', // CONTOH: IP Gateway VPN di MikroTik
+        // GANTI DENGAN IP PUBLIK ROUTER ANDA
+        host: 'YOUR_PUBLIC_IP', // CONTOH: 123.45.67.89
         user: 'ubrin',           // GANTI DENGAN USER API ANDA
         password: '12b12bb', // GANTI DENGAN PASSWORD ANDA
-        port: 8728,          // Port API, default 8728, atau 8729 untuk ssl
+        port: 28728,          // GANTI DENGAN PORT PUBLIK YANG ANDA BUAT DI NAT
         // timeout di sini adalah untuk socket setelah terhubung, bukan timeout koneksi
         timeout: 15,
     });
