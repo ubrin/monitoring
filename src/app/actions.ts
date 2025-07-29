@@ -11,10 +11,29 @@ import type { Customer } from '@/lib/data';
 // Anda mungkin perlu mengimpor library yang Anda install, contoh:
 import { RouterOSAPI } from 'node-routeros';
 
+// Helper function to parse 'max-limit' like "10M/20M" into Mbps
+function parseRateToMbps(rate?: string): number {
+    if (!rate) return 0;
+    const rateLower = rate.toLowerCase();
+    let value = parseFloat(rateLower);
+    if (rateLower.endsWith('m')) {
+        return value;
+    }
+    if (rateLower.endsWith('k')) {
+        return value / 1024;
+    }
+    if (rateLower.endsWith('g')) {
+        return value * 1024;
+    }
+    // Assuming bps if no unit
+    return value / 1024 / 1024;
+}
+
+
 // Ini adalah fungsi utama yang akan dipanggil oleh aplikasi Anda.
 export async function getCustomers(): Promise<Customer[]> {
   console.log(
-    'Fetching customer data from MikroTik...'
+    'Fetching customer data from MikroTik Static Queues...'
   );
 
   // ========================================================================
@@ -42,20 +61,28 @@ export async function getCustomers(): Promise<Customer[]> {
 
     await Promise.race([connectionPromise, timeoutPromise]);
     
-    // Contoh mengambil data dari 'ip hotspot active'
-    const hotspotUsers = await conn.write('/ip/hotspot/active/print');
+    // Mengambil data dari 'queue simple'
+    const simpleQueues = await conn.write('/queue/simple/print');
     
     // Ubah data dari router menjadi format yang dimengerti aplikasi
-    const formattedCustomers: Customer[] = hotspotUsers.map((user: any, index: number) => ({
-        id: user['.id'] || `usr_${index}`,
-        username: user.user,
-        ipAddress: user['address'],
-        macAddress: user['mac-address'],
-        // Anda mungkin perlu logika tambahan untuk mendapatkan data upload/download
-        upload: 0, 
-        download: 0,
-        status: 'online',
-    }));
+    const formattedCustomers: Customer[] = simpleQueues.map((queue: any) => {
+        const [uploadLimit, downloadLimit] = (queue['max-limit'] || '0/0').split('/');
+
+        // Logic to determine status could be based on queue traffic, for now, static 'online'
+        const isOnline = (parseInt(queue.bytes?.split('/')[0] || '0') > 0 || parseInt(queue.bytes?.split('/')[1] || '0') > 0);
+
+        return {
+            id: queue['.id'] || `queue_${queue.name}`,
+            username: queue.name,
+            ipAddress: (queue.target || '').split('/')[0], // Remove CIDR suffix if present
+            macAddress: queue['target-mac'] || '', // Not always available in simple queues
+            upload: parseRateToMbps(uploadLimit), 
+            download: parseRateToMbps(downloadLimit),
+            // A simple queue is always 'configured', let's assume 'online' for display.
+            // You might need more complex logic, e.g., checking traffic on the queue.
+            status: isOnline ? 'online' : 'offline', 
+        };
+    });
 
     return formattedCustomers;
 
