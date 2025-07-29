@@ -91,7 +91,7 @@ export async function getCustomers(): Promise<Customer[]> {
     return []; 
   } finally {
       if (conn && conn.connected) {
-          await conn.close();
+          conn.close();
       }
   }
 }
