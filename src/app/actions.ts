@@ -67,19 +67,18 @@ export async function getCustomers(): Promise<Customer[]> {
     // Ubah data dari router menjadi format yang dimengerti aplikasi
     const formattedCustomers: Customer[] = simpleQueues.map((queue: any) => {
         const [uploadLimit, downloadLimit] = (queue['max-limit'] || '0/0').split('/');
-
-        // Logic to determine status could be based on queue traffic, for now, static 'online'
+        
+        // Logic to determine status based on actual traffic in the queue.
+        // If there's any byte traffic (upload or download), we consider the user online.
         const isOnline = (parseInt(queue.bytes?.split('/')[0] || '0') > 0 || parseInt(queue.bytes?.split('/')[1] || '0') > 0);
 
         return {
             id: queue['.id'] || `queue_${queue.name}`,
             username: queue.name,
             ipAddress: (queue.target || '').split('/')[0], // Remove CIDR suffix if present
-            macAddress: queue['target-mac'] || '', // Not always available in simple queues
+            macAddress: queue['mac-address'] || '', // Not always available in simple queues
             upload: parseRateToMbps(uploadLimit), 
             download: parseRateToMbps(downloadLimit),
-            // A simple queue is always 'configured', let's assume 'online' for display.
-            // You might need more complex logic, e.g., checking traffic on the queue.
             status: isOnline ? 'online' : 'offline', 
         };
     });
