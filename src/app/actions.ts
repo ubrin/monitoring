@@ -87,9 +87,7 @@ export async function getCustomers(): Promise<Customer[]> {
 
   } catch (error) {
     console.error("Gagal terhubung atau mengambil data dari MikroTik:", error);
-    // Jika gagal, kita bisa kembalikan data kosong atau data statis
-    // import { customers as staticCustomers } from './data';
-    // return staticCustomers; // Anda bisa gunakan ini untuk fallback ke data statis
+    // Jika gagal, kita kembalikan data kosong untuk mencegah aplikasi crash.
     return []; 
   } finally {
       if (conn && conn.connected) {
