@@ -182,6 +182,28 @@ export default function CustomerTable({
     const parentQueue = customers.find(c => c.username === parentName);
     return parentQueue?.ipAddress;
   }, [customers]);
+  
+  const sortedParentGroups = React.useMemo(() => {
+    return Object.entries(groupedAndFilteredCustomers)
+      .map(([parent, children]) => ({
+        parent,
+        children,
+        parentIp: getParentIp(parent),
+      }))
+      .sort((a, b) => {
+        // Handle 'none' group to always be at the end
+        if (a.parent === 'none') return 1;
+        if (b.parent === 'none') return -1;
+        
+        // Sort by parent IP address if available
+        if (a.parentIp && b.parentIp) {
+            return a.parentIp.localeCompare(b.parentIp, undefined, { numeric: true });
+        }
+        // Fallback to sorting by parent name
+        return a.parent.localeCompare(b.parent);
+      });
+  }, [groupedAndFilteredCustomers, getParentIp]);
+
 
   return (
     <Card className="flex-1 flex flex-col h-full">
@@ -199,8 +221,7 @@ export default function CustomerTable({
       </CardHeader>
       <CardContent className="flex-1 overflow-y-auto">
         <Accordion type="multiple" className="w-full" defaultValue={Object.keys(groupedAndFilteredCustomers)}>
-          {Object.entries(groupedAndFilteredCustomers).map(([parent, children]) => {
-            const parentIp = getParentIp(parent);
+          {sortedParentGroups.map(({parent, children, parentIp}) => {
             return (
                 <AccordionItem value={parent} key={parent}>
                   <AccordionTrigger className="hover:no-underline">
