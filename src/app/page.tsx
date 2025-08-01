@@ -15,7 +15,10 @@ export default function DashboardPage() {
 
   useEffect(() => {
     const fetchData = async () => {
-      setIsLoading(true);
+      // Only show the main loading skeleton on the initial load.
+      if (customers.length === 0) {
+        setIsLoading(true);
+      }
       try {
         const fetchedCustomers = await getCustomers();
         setCustomers(fetchedCustomers);
@@ -23,12 +26,22 @@ export default function DashboardPage() {
         console.error("Failed to fetch customers:", error);
         // Optionally, show a toast notification for the error
       } finally {
-        setIsLoading(false);
+        // Ensure loading is false after the first fetch.
+        if (isLoading) {
+            setIsLoading(false);
+        }
       }
     };
 
+    // Fetch data immediately on component mount
     fetchData();
-  }, []);
+
+    // Then, set up an interval to fetch data every 5 seconds (5000ms)
+    const intervalId = setInterval(fetchData, 5000);
+
+    // Clean up the interval when the component unmounts
+    return () => clearInterval(intervalId);
+  }, []); // Empty dependency array ensures this effect runs only once on mount and unmount
 
 
   const handleCustomerSelect = (customer: Customer | null) => {
