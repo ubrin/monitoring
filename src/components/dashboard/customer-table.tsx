@@ -26,7 +26,8 @@ import { Badge } from '@/components/ui/badge';
 type SortKey = keyof Omit<Customer, 'status' | 'parent'>;
 type GroupedCustomers = { [key: string]: Customer[] };
 
-const ChildCustomerTable = ({
+// Memoize ChildCustomerTable to prevent re-rendering when its props haven't changed.
+const ChildCustomerTable = React.memo(({
   customers,
   onCustomerSelect,
   selectedCustomerId,
@@ -95,7 +96,7 @@ const ChildCustomerTable = ({
                 <div className="flex items-center gap-3">
                   <span
                     className={cn(
-                      'h-2.5 w-2.5 rounded-full',
+                      'h-2.5 w-2.5 rounded-full transition-colors duration-300', // Added transition for smooth color change
                       customer.status === 'online' ? 'bg-green-500' : 'bg-red-500'
                     )}
                   ></span>
@@ -113,7 +114,8 @@ const ChildCustomerTable = ({
       </Table>
     </div>
   );
-};
+});
+ChildCustomerTable.displayName = 'ChildCustomerTable';
 
 
 export default function CustomerTable({
@@ -172,6 +174,13 @@ export default function CustomerTable({
     return filteredGroups;
 
   }, [customers, filter]);
+  
+  const getParentIp = (parentName: string): string | undefined => {
+    if (parentName === 'none' || !customers) return undefined;
+    // The parent is also a queue in the list. We find it by its name.
+    const parentQueue = customers.find(c => c.username === parentName);
+    return parentQueue?.ipAddress;
+  }
 
   return (
     <Card className="flex-1 flex flex-col h-full">
@@ -188,27 +197,33 @@ export default function CustomerTable({
         </div>
       </CardHeader>
       <CardContent className="flex-1 overflow-y-auto">
-        <Accordion type="multiple" className="w-full">
-          {Object.entries(groupedAndFilteredCustomers).map(([parent, children]) => (
-            <AccordionItem value={parent} key={parent}>
-              <AccordionTrigger className="hover:no-underline">
-                <div className='flex items-center gap-3 w-full'>
-                    <Users className="h-5 w-5 text-primary" />
-                    <span className="font-bold text-lg">{parent === 'none' ? 'Uncategorized' : parent}</span>
-                    <Badge variant="secondary" className="ml-auto mr-4">{children.length} users</Badge>
-                </div>
-              </AccordionTrigger>
-              <AccordionContent>
-                <ChildCustomerTable
-                    customers={children}
-                    onCustomerSelect={onCustomerSelect}
-                    selectedCustomerId={selectedCustomerId}
-                    sortConfig={sortConfig}
-                    handleSort={handleSort}
-                />
-              </AccordionContent>
-            </AccordionItem>
-          ))}
+        <Accordion type="multiple" className="w-full" defaultValue={Object.keys(groupedAndFilteredCustomers)}>
+          {Object.entries(groupedAndFilteredCustomers).map(([parent, children]) => {
+            const parentIp = getParentIp(parent);
+            return (
+                <AccordionItem value={parent} key={parent}>
+                  <AccordionTrigger className="hover:no-underline">
+                    <div className='flex items-center gap-3 w-full'>
+                        <Users className="h-5 w-5 text-primary" />
+                        <div>
+                            <span className="font-bold text-lg">{parent === 'none' ? 'Uncategorized' : parent}</span>
+                            {parentIp && <div className="text-xs text-muted-foreground">{parentIp}</div>}
+                        </div>
+                        <Badge variant="secondary" className="ml-auto mr-4">{children.length} users</Badge>
+                    </div>
+                  </AccordionTrigger>
+                  <AccordionContent>
+                    <ChildCustomerTable
+                        customers={children}
+                        onCustomerSelect={onCustomerSelect}
+                        selectedCustomerId={selectedCustomerId}
+                        sortConfig={sortConfig}
+                        handleSort={handleSort}
+                    />
+                  </AccordionContent>
+                </AccordionItem>
+            )
+          })}
         </Accordion>
       </CardContent>
     </Card>
