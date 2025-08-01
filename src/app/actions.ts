@@ -108,9 +108,13 @@ export async function getUnregisteredIps(): Promise<UnregisteredIp[]> {
       simpleQueues.map((queue: any) => (queue.target || '').split('/')[0])
     );
     
-    // Filter ARP list untuk menemukan IP yang tidak terdaftar
+    // Filter ARP list untuk menemukan IP yang tidak terdaftar dan berstatus 'dynamic' dan 'complete'
     const unregistered = arpList.filter(
-      (arp: any) => arp.address && !registeredIps.has(arp.address) && arp.dynamic === 'true' // Hanya tampilkan yg dinamis
+      (arp: any) =>
+        arp.address &&
+        !registeredIps.has(arp.address) &&
+        arp.dynamic === 'true' && // 'D' flag
+        arp.complete === 'true' // 'C' flag
     );
 
     return unregistered.map((arp: any) => ({
