@@ -15,10 +15,6 @@ export default function DashboardPage() {
 
   useEffect(() => {
     const fetchData = async () => {
-      // Only show the main loading skeleton on the initial load.
-      if (customers.length === 0) {
-        setIsLoading(true);
-      }
       try {
         const fetchedCustomers = await getCustomers();
         setCustomers(fetchedCustomers);
@@ -33,15 +29,17 @@ export default function DashboardPage() {
       }
     };
 
-    // Fetch data immediately on component mount
-    fetchData();
-
+    // Fetch data immediately on component mount, and only show skeleton on initial load.
+    if (isLoading) {
+      fetchData();
+    }
+    
     // Then, set up an interval to fetch data every 5 seconds (5000ms)
     const intervalId = setInterval(fetchData, 5000);
 
     // Clean up the interval when the component unmounts
     return () => clearInterval(intervalId);
-  }, [isLoading, customers.length]); // Dependencies added to avoid potential stale closures
+  }, [isLoading]); // Dependency removed to prevent infinite loop
 
 
   const handleCustomerSelect = useCallback((customer: Customer | null) => {
