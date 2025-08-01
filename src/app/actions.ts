@@ -44,7 +44,7 @@ export async function getCustomers(): Promise<Customer[]> {
     await Promise.race([connectionPromise, timeoutPromise]);
     
     // Mengambil data dari 'queue simple'
-    const simpleQueues = await conn.write('/queue/simple/print', ['?stats']);
+    const simpleQueues = await conn.write('/queue/simple/print');
     
     // Ubah data dari router menjadi format yang dimengerti aplikasi
     const formattedCustomers: Customer[] = simpleQueues.map((queue: any) => {
