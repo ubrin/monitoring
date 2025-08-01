@@ -220,7 +220,7 @@ export default function CustomerTable({
         </div>
       </CardHeader>
       <CardContent className="flex-1 overflow-y-auto">
-        <Accordion type="multiple" className="w-full" defaultValue={Object.keys(groupedAndFilteredCustomers)}>
+        <Accordion type="multiple" className="w-full">
           {sortedParentGroups.map(({parent, children, parentIp}) => {
              const onlineCount = children.filter(c => c.status === 'online').length;
              const offlineCount = children.length - onlineCount;
