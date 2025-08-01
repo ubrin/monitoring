@@ -14,7 +14,7 @@ import { RouterOSAPI } from 'node-routeros';
 // Ini adalah fungsi utama yang akan dipanggil oleh aplikasi Anda.
 export async function getCustomers(): Promise<Customer[]> {
   console.log(
-    'Fetching customer data from MikroTik Static Queues...'
+    'Fetching customer data from MikroTik Simple Queues...'
   );
 
   // ========================================================================
