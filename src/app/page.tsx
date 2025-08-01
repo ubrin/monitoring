@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
@@ -7,6 +8,8 @@ import CustomerTable from '@/components/dashboard/customer-table';
 import IpLiarTable from '@/components/dashboard/ip-liar-table';
 import { CustomerDetailSheet } from '@/components/dashboard/customer-detail-sheet';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+
 
 export default function DashboardPage() {
   const [customers, setCustomers] = useState<Customer[]>([]);
@@ -62,29 +65,40 @@ export default function DashboardPage() {
           </h1>
           <p className="text-muted-foreground">Real-time Mikrotik customer and network monitoring.</p>
         </header>
-        <div className="flex-1 grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {isLoading ? (
-             <div className="space-y-4">
-                <Skeleton className="h-12 w-1/4" />
-                <Skeleton className="h-24 w-full" />
-                <Skeleton className="h-64 w-full" />
-            </div>
-          ) : (
-            <CustomerTable 
-              customers={customers}
-              onCustomerSelect={handleCustomerSelect} 
-              selectedCustomerId={selectedCustomer?.id} 
-            />
-          )}
-           {isLoading ? (
-            <div className="space-y-4">
-              <Skeleton className="h-12 w-1/4" />
-              <Skeleton className="h-64 w-full" />
-            </div>
-          ) : (
-            <IpLiarTable unregisteredIps={unregisteredIps} />
-          )}
-        </div>
+
+        <Tabs defaultValue="customers" className="flex-1 flex flex-col">
+          <TabsList className="mb-4 self-start">
+            <TabsTrigger value="customers">Customers</TabsTrigger>
+            <TabsTrigger value="unregistered-ips">IP Liar</TabsTrigger>
+          </TabsList>
+          
+          <TabsContent value="customers" className="flex-1">
+             {isLoading ? (
+               <div className="space-y-4 h-full">
+                  <Skeleton className="h-12 w-1/4" />
+                  <Skeleton className="h-24 w-full" />
+                  <Skeleton className="flex-1 w-full" />
+              </div>
+            ) : (
+              <CustomerTable 
+                customers={customers}
+                onCustomerSelect={handleCustomerSelect} 
+                selectedCustomerId={selectedCustomer?.id} 
+              />
+            )}
+          </TabsContent>
+          <TabsContent value="unregistered-ips" className="flex-1">
+             {isLoading ? (
+                <div className="space-y-4 h-full">
+                  <Skeleton className="h-12 w-1/4" />
+                  <Skeleton className="flex-1 w-full" />
+                </div>
+              ) : (
+                <IpLiarTable unregisteredIps={unregisteredIps} />
+              )}
+          </TabsContent>
+        </Tabs>
+
         <CustomerDetailSheet
           customer={selectedCustomer}
           onOpenChange={(isOpen) => {
