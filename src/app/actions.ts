@@ -13,10 +13,10 @@ import { RouterOSAPI } from 'node-routeros';
 
 async function getMikrotikConnection() {
   const conn = new RouterOSAPI({
-      host: '103.160.179.29',
-      user: 'APK',
-      password: '12341234',
-      port: 8777,
+      host: process.env.MIKROTIK_HOST,
+      user: process.env.MIKROTIK_USER,
+      password: process.env.MIKROTIK_PASSWORD,
+      port: Number(process.env.MIKROTIK_PORT || 8728),
       timeout: 15,
       legacy: true,
   });
@@ -63,7 +63,11 @@ export async function getCustomers(): Promise<Customer[]> {
             } else if (arpEntry.dynamic === 'false') {
                 arpStatus = 'static';
             } else {
-                arpStatus = 'dynamic';
+                if (arpEntry.complete === 'true') {
+                    arpStatus = 'dc';
+                } else {
+                    arpStatus = 'd';
+                }
             }
         }
         
@@ -83,12 +87,6 @@ export async function getCustomers(): Promise<Customer[]> {
     console.error("Gagal terhubung atau mengambil data dari MikroTik:", error);
     // Jika gagal, kita kembalikan data kosong untuk mencegah aplikasi crash.
     return []; 
-  } finally {
-      // We are intentionally not closing the connection here to prevent frequent login/logout cycles.
-      // The library should handle timeouts and connection closing gracefully.
-      // if (conn && conn.connected) {
-      //     conn.close();
-      // }
   }
 }
 
@@ -127,9 +125,5 @@ export async function getUnregisteredIps(): Promise<UnregisteredIp[]> {
   } catch (error) {
     console.error("Gagal mengambil data IP liar dari MikroTik:", error);
     return [];
-  } finally {
-    //  if (conn && conn.connected) {
-    //      conn.close();
-    //  }
   }
 }
