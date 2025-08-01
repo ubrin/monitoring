@@ -222,6 +222,8 @@ export default function CustomerTable({
       <CardContent className="flex-1 overflow-y-auto">
         <Accordion type="multiple" className="w-full" defaultValue={Object.keys(groupedAndFilteredCustomers)}>
           {sortedParentGroups.map(({parent, children, parentIp}) => {
+             const onlineCount = children.filter(c => c.status === 'online').length;
+             const offlineCount = children.length - onlineCount;
             return (
                 <AccordionItem value={parent} key={parent}>
                   <AccordionTrigger className="hover:no-underline">
@@ -231,7 +233,19 @@ export default function CustomerTable({
                             <span className="font-bold text-lg">{parent === 'none' ? 'Uncategorized' : parent}</span>
                             {parentIp && <div className="text-xs text-muted-foreground">{parentIp}</div>}
                         </div>
-                        <Badge variant="secondary" className="ml-auto mr-4">{children.length} users</Badge>
+                        <div className="ml-auto mr-4 flex items-center gap-4">
+                            <Badge variant="secondary" className='flex items-center gap-2'>
+                                <div className='flex items-center gap-1.5'>
+                                    <span className='h-2 w-2 rounded-full bg-green-500'></span>
+                                    <span>{onlineCount}</span>
+                                </div>
+                                <div className='flex items-center gap-1.5'>
+                                    <span className='h-2 w-2 rounded-full bg-red-500'></span>
+                                    <span>{offlineCount}</span>
+                                </div>
+                            </Badge>
+                             <Badge variant="outline">{children.length} users</Badge>
+                        </div>
                     </div>
                   </AccordionTrigger>
                   <AccordionContent>
