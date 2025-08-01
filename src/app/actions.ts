@@ -45,10 +45,10 @@ export async function getCustomers(): Promise<Customer[]> {
   try {
     conn = new RouterOSAPI({
         // GANTI DENGAN IP PUBLIK ROUTER ANDA
-        host: 'YOUR_PUBLIC_IP', // CONTOH: 123.45.67.89
-        user: 'ubrin',           // GANTI DENGAN USER API ANDA
-        password: '12b12bb', // GANTI DENGAN PASSWORD ANDA
-        port: 28728,          // GANTI DENGAN PORT PUBLIK YANG ANDA BUAT DI NAT
+        host: '103.160.179.29', // CONTOH: 123.45.67.89
+        user: 'APK',           // GANTI DENGAN USER API ANDA
+        password: '12341234', // GANTI DENGAN PASSWORD ANDA
+        port: 8777,          // GANTI DENGAN PORT PUBLIK YANG ANDA BUAT DI NAT
         // timeout di sini adalah untuk socket setelah terhubung, bukan timeout koneksi
         timeout: 15,
         legacy: true, // Aktifkan mode legacy untuk RouterOS versi lama
