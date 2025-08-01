@@ -51,6 +51,7 @@ export async function getCustomers(): Promise<Customer[]> {
         port: 28728,          // GANTI DENGAN PORT PUBLIK YANG ANDA BUAT DI NAT
         // timeout di sini adalah untuk socket setelah terhubung, bukan timeout koneksi
         timeout: 15,
+        legacy: true, // Aktifkan mode legacy untuk RouterOS versi lama
     });
 
     // Implementasi timeout koneksi manual
