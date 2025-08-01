@@ -69,8 +69,10 @@ export async function getCustomers(): Promise<Customer[]> {
     // Jika gagal, kita kembalikan data kosong untuk mencegah aplikasi crash.
     return []; 
   } finally {
-      if (conn && conn.connected) {
-          conn.close();
-      }
+      // We are intentionally not closing the connection here to prevent frequent login/logout cycles.
+      // The library should handle timeouts and connection closing gracefully.
+      // if (conn && conn.connected) {
+      //     conn.close();
+      // }
   }
 }
