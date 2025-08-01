@@ -11,12 +11,110 @@ import {
 } from '@/components/ui/table';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { ArrowUpDown, BarChart2, Search } from 'lucide-react';
+import { ArrowUpDown, BarChart2, Search, Users } from 'lucide-react';
 import { type Customer } from '@/lib/data';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from '@/components/ui/accordion';
 import { cn } from '@/lib/utils';
+import { Badge } from '@/components/ui/badge';
 
-type SortKey = keyof Omit<Customer, 'status'>;
+type SortKey = keyof Omit<Customer, 'status' | 'parent'>;
+type GroupedCustomers = { [key: string]: Customer[] };
+
+const ChildCustomerTable = ({
+  customers,
+  onCustomerSelect,
+  selectedCustomerId,
+  sortConfig,
+  handleSort,
+}: {
+  customers: Customer[];
+  onCustomerSelect: (customer: Customer) => void;
+  selectedCustomerId?: string;
+  sortConfig: { key: SortKey; direction: 'ascending' | 'descending' } | null;
+  handleSort: (key: SortKey) => void;
+}) => {
+  const sortedCustomers = React.useMemo(() => {
+    if (!customers) return [];
+    let sortableItems = [...customers];
+    if (sortConfig !== null) {
+      sortableItems.sort((a, b) => {
+        if (a[sortConfig.key] < b[sortConfig.key]) {
+          return sortConfig.direction === 'ascending' ? -1 : 1;
+        }
+        if (a[sortConfig.key] > b[sortConfig.key]) {
+          return sortConfig.direction === 'ascending' ? 1 : -1;
+        }
+        return 0;
+      });
+    }
+    return sortableItems;
+  }, [customers, sortConfig]);
+
+  return (
+    <div className="w-full">
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead>
+              <Button variant="ghost" size="sm" onClick={() => handleSort('username')}>
+                Username
+                <ArrowUpDown className="ml-2 h-4 w-4" />
+              </Button>
+            </TableHead>
+            <TableHead>
+              <Button variant="ghost" size="sm" onClick={() => handleSort('ipAddress')}>
+                IP Address
+                <ArrowUpDown className="ml-2 h-4 w-4" />
+              </Button>
+            </TableHead>
+            <TableHead className="hidden md:table-cell">MAC Address</TableHead>
+            <TableHead className="text-center">
+              <div className="flex items-center justify-center gap-2">
+                <BarChart2 className="h-4 w-4" /> Usage (Mbps)
+              </div>
+            </TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {sortedCustomers.map((customer) => (
+            <TableRow
+              key={customer.id}
+              onClick={() => onCustomerSelect(customer)}
+              className={cn(
+                'cursor-pointer',
+                selectedCustomerId === customer.id && 'bg-accent'
+              )}
+            >
+              <TableCell className="font-medium">
+                <div className="flex items-center gap-3">
+                  <span
+                    className={cn(
+                      'h-2.5 w-2.5 rounded-full',
+                      customer.status === 'online' ? 'bg-green-500' : 'bg-red-500'
+                    )}
+                  ></span>
+                  {customer.username}
+                </div>
+              </TableCell>
+              <TableCell>{customer.ipAddress}</TableCell>
+              <TableCell className="hidden md:table-cell">{customer.macAddress}</TableCell>
+              <TableCell className="text-center">
+                {customer.download.toFixed(2)} / {customer.upload.toFixed(2)}
+              </TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+    </div>
+  );
+};
+
 
 export default function CustomerTable({
   customers,
@@ -45,33 +143,40 @@ export default function CustomerTable({
     setSortConfig({ key, direction });
   };
 
-  const sortedCustomers = React.useMemo(() => {
-    let sortableItems = [...customers];
-    if (sortConfig !== null) {
-      sortableItems.sort((a, b) => {
-        if (a[sortConfig.key] < b[sortConfig.key]) {
-          return sortConfig.direction === 'ascending' ? -1 : 1;
-        }
-        if (a[sortConfig.key] > b[sortConfig.key]) {
-          return sortConfig.direction === 'ascending' ? 1 : -1;
-        }
-        return 0;
-      });
-    }
-    return sortableItems;
-  }, [customers, sortConfig]);
+  const groupedAndFilteredCustomers = React.useMemo(() => {
+    const grouped = (customers || []).reduce((acc: GroupedCustomers, customer) => {
+      const parentKey = customer.parent || 'none';
+      if (!acc[parentKey]) {
+        acc[parentKey] = [];
+      }
+      acc[parentKey].push(customer);
+      return acc;
+    }, {});
 
-  const filteredCustomers = sortedCustomers.filter(
-    (customer) =>
-      customer.username.toLowerCase().includes(filter.toLowerCase()) ||
-      customer.ipAddress.includes(filter) ||
-      customer.macAddress.toLowerCase().includes(filter.toLowerCase())
-  );
+    if (!filter) {
+      return grouped;
+    }
+
+    const filteredGroups: GroupedCustomers = {};
+    for (const parentKey in grouped) {
+      const filteredChildren = grouped[parentKey].filter(
+        (customer) =>
+          customer.username.toLowerCase().includes(filter.toLowerCase()) ||
+          customer.ipAddress.includes(filter) ||
+          customer.macAddress.toLowerCase().includes(filter.toLowerCase())
+      );
+      if (filteredChildren.length > 0) {
+        filteredGroups[parentKey] = filteredChildren;
+      }
+    }
+    return filteredGroups;
+
+  }, [customers, filter]);
 
   return (
     <Card className="flex-1 flex flex-col h-full">
       <CardHeader>
-        <CardTitle>Active Customers</CardTitle>
+        <CardTitle>Customer Groups</CardTitle>
         <div className="relative mt-2">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
@@ -83,54 +188,28 @@ export default function CustomerTable({
         </div>
       </CardHeader>
       <CardContent className="flex-1 overflow-y-auto">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>
-                <Button variant="ghost" size="sm" onClick={() => handleSort('username')}>
-                  Username
-                  <ArrowUpDown className="ml-2 h-4 w-4" />
-                </Button>
-              </TableHead>
-              <TableHead>
-                <Button variant="ghost" size="sm" onClick={() => handleSort('ipAddress')}>
-                  IP Address
-                  <ArrowUpDown className="ml-2 h-4 w-4" />
-                </Button>
-              </TableHead>
-              <TableHead className="hidden md:table-cell">MAC Address</TableHead>
-              <TableHead className="text-center">
-                <div className="flex items-center justify-center gap-2">
-                    <BarChart2 className="h-4 w-4" /> Usage (Mbps)
+        <Accordion type="multiple" className="w-full">
+          {Object.entries(groupedAndFilteredCustomers).map(([parent, children]) => (
+            <AccordionItem value={parent} key={parent}>
+              <AccordionTrigger className="hover:no-underline">
+                <div className='flex items-center gap-3 w-full'>
+                    <Users className="h-5 w-5 text-primary" />
+                    <span className="font-bold text-lg">{parent === 'none' ? 'Uncategorized' : parent}</span>
+                    <Badge variant="secondary" className="ml-auto mr-4">{children.length} users</Badge>
                 </div>
-              </TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {filteredCustomers.map((customer) => (
-              <TableRow
-                key={customer.id}
-                onClick={() => onCustomerSelect(customer)}
-                className={cn(
-                  'cursor-pointer',
-                  selectedCustomerId === customer.id && 'bg-accent'
-                )}
-              >
-                <TableCell className="font-medium">
-                    <div className="flex items-center gap-3">
-                        <span className={cn("h-2.5 w-2.5 rounded-full", customer.status === 'online' ? 'bg-green-500' : 'bg-red-500')}></span>
-                        {customer.username}
-                    </div>
-                </TableCell>
-                <TableCell>{customer.ipAddress}</TableCell>
-                <TableCell className="hidden md:table-cell">{customer.macAddress}</TableCell>
-                <TableCell className="text-center">
-                  {customer.download.toFixed(2)} / {customer.upload.toFixed(2)}
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+              </AccordionTrigger>
+              <AccordionContent>
+                <ChildCustomerTable
+                    customers={children}
+                    onCustomerSelect={onCustomerSelect}
+                    selectedCustomerId={selectedCustomerId}
+                    sortConfig={sortConfig}
+                    handleSort={handleSort}
+                />
+              </AccordionContent>
+            </AccordionItem>
+          ))}
+        </Accordion>
       </CardContent>
     </Card>
   );

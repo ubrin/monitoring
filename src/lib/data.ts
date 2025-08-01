@@ -6,6 +6,7 @@ export type Customer = {
   upload: number; // in Mbps
   download: number; // in Mbps
   status: 'online' | 'offline';
+  parent?: string;
 };
 
 export const customers: Customer[] = [
@@ -17,6 +18,7 @@ export const customers: Customer[] = [
     upload: 10.5,
     download: 50.2,
     status: 'online',
+    parent: 'Group-A',
   },
   {
     id: 'usr_2',
@@ -26,6 +28,7 @@ export const customers: Customer[] = [
     upload: 5.1,
     download: 25.8,
     status: 'online',
+    parent: 'Group-A',
   },
   {
     id: 'usr_3',
@@ -35,6 +38,7 @@ export const customers: Customer[] = [
     upload: 2.3,
     download: 10.1,
     status: 'offline',
+    parent: 'Group-B',
   },
   {
     id: 'usr_4',
@@ -44,6 +48,7 @@ export const customers: Customer[] = [
     upload: 20.0,
     download: 100.0,
     status: 'online',
+    parent: 'Group-B',
   },
   {
     id: 'usr_5',
@@ -53,6 +58,7 @@ export const customers: Customer[] = [
     upload: 8.9,
     download: 45.3,
     status: 'online',
+    parent: 'Group-A',
   },
   {
     id: 'usr_6',
@@ -62,6 +68,7 @@ export const customers: Customer[] = [
     upload: 15.2,
     download: 75.5,
     status: 'offline',
+    parent: 'none',
   },
     {
     id: 'usr_7',
@@ -71,6 +78,7 @@ export const customers: Customer[] = [
     upload: 12.8,
     download: 60.1,
     status: 'online',
+    parent: 'none',
   },
   {
     id: 'usr_8',
@@ -80,5 +88,6 @@ export const customers: Customer[] = [
     upload: 3.1,
     download: 15.6,
     status: 'online',
+    parent: 'Group-B',
   },
 ];

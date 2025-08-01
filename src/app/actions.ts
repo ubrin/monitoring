@@ -80,7 +80,8 @@ export async function getCustomers(): Promise<Customer[]> {
             macAddress: queue['mac-address'] || '', // Not always available in simple queues
             upload: parseRateToMbps(uploadLimit), 
             download: parseRateToMbps(downloadLimit),
-            status: isOnline ? 'online' : 'offline', 
+            status: isOnline ? 'online' : 'offline',
+            parent: queue.parent || 'none',
         };
     });
 
