@@ -41,8 +41,7 @@ const ChildCustomerTable = React.memo(({
   handleSort: (key: SortKey) => void;
 }) => {
   const sortedCustomers = React.useMemo(() => {
-    if (!customers) return [];
-    let sortableItems = [...customers];
+    let sortableItems = [...(customers || [])]; // Ensure customers is an array
     if (sortConfig !== null) {
       sortableItems.sort((a, b) => {
         if (a[sortConfig.key] < b[sortConfig.key]) {
@@ -133,17 +132,19 @@ export default function CustomerTable({
     direction: 'ascending' | 'descending';
   } | null>({ key: 'username', direction: 'ascending' });
 
-  const handleSort = (key: SortKey) => {
-    let direction: 'ascending' | 'descending' = 'ascending';
-    if (
-      sortConfig &&
-      sortConfig.key === key &&
-      sortConfig.direction === 'ascending'
-    ) {
-      direction = 'descending';
-    }
-    setSortConfig({ key, direction });
-  };
+  const handleSort = React.useCallback((key: SortKey) => {
+    setSortConfig(prevSortConfig => {
+        let direction: 'ascending' | 'descending' = 'ascending';
+        if (
+          prevSortConfig &&
+          prevSortConfig.key === key &&
+          prevSortConfig.direction === 'ascending'
+        ) {
+          direction = 'descending';
+        }
+        return { key, direction };
+    });
+  }, []);
 
   const groupedAndFilteredCustomers = React.useMemo(() => {
     const grouped = (customers || []).reduce((acc: GroupedCustomers, customer) => {
@@ -175,12 +176,12 @@ export default function CustomerTable({
 
   }, [customers, filter]);
   
-  const getParentIp = (parentName: string): string | undefined => {
+  const getParentIp = React.useCallback((parentName: string): string | undefined => {
     if (parentName === 'none' || !customers) return undefined;
     // The parent is also a queue in the list. We find it by its name.
     const parentQueue = customers.find(c => c.username === parentName);
     return parentQueue?.ipAddress;
-  }
+  }, [customers]);
 
   return (
     <Card className="flex-1 flex flex-col h-full">

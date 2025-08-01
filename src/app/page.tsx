@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import type { Customer } from '@/lib/data';
 import { getCustomers } from '@/app/actions';
 import Sidebar from '@/components/layout/sidebar';
@@ -41,22 +41,22 @@ export default function DashboardPage() {
 
     // Clean up the interval when the component unmounts
     return () => clearInterval(intervalId);
-  }, []); // Empty dependency array ensures this effect runs only once on mount and unmount
+  }, [isLoading, customers.length]); // Dependencies added to avoid potential stale closures
 
 
-  const handleCustomerSelect = (customer: Customer | null) => {
+  const handleCustomerSelect = useCallback((customer: Customer | null) => {
     setSelectedCustomer(customer);
-  };
+  }, []);
   
-  const handleCustomerUpdate = (updatedCustomer: Customer) => {
+  const handleCustomerUpdate = useCallback((updatedCustomer: Customer) => {
     setCustomers(prevCustomers => prevCustomers.map(c => c.id === updatedCustomer.id ? updatedCustomer : c));
     setSelectedCustomer(updatedCustomer);
-  }
+  }, []);
 
-  const handleCustomerDelete = (customerId: string) => {
+  const handleCustomerDelete = useCallback((customerId: string) => {
     setCustomers(prevCustomers => prevCustomers.filter(c => c.id !== customerId));
     setSelectedCustomer(null);
-  }
+  }, []);
 
 
   return (
