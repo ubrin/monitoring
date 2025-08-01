@@ -11,22 +11,12 @@ import type { Customer } from '@/lib/data';
 // Anda mungkin perlu mengimpor library yang Anda install, contoh:
 import { RouterOSAPI } from 'node-routeros';
 
-// Helper function to parse 'max-limit' like "10M/20M" into Mbps
+// Helper function to parse 'rate' from bps to Mbps
 function parseRateToMbps(rate?: string): number {
     if (!rate) return 0;
-    const rateLower = rate.toLowerCase();
-    let value = parseFloat(rateLower);
-    if (rateLower.endsWith('m')) {
-        return value;
-    }
-    if (rateLower.endsWith('k')) {
-        return value / 1024;
-    }
-    if (rateLower.endsWith('g')) {
-        return value * 1024;
-    }
-    // Assuming bps if no unit
-    return value / 1024 / 1024;
+    const numericRate = parseFloat(rate);
+    if (isNaN(numericRate)) return 0;
+    return numericRate / 1000 / 1000; // Convert bps to Mbps
 }
 
 
@@ -63,11 +53,13 @@ export async function getCustomers(): Promise<Customer[]> {
     await Promise.race([connectionPromise, timeoutPromise]);
     
     // Mengambil data dari 'queue simple'
-    const simpleQueues = await conn.write('/queue/simple/print');
+    // Meminta properti 'rate' untuk mendapatkan penggunaan real-time
+    const simpleQueues = await conn.write('/queue/simple/print', ['?stats']);
     
     // Ubah data dari router menjadi format yang dimengerti aplikasi
     const formattedCustomers: Customer[] = simpleQueues.map((queue: any) => {
-        const [uploadLimit, downloadLimit] = (queue['max-limit'] || '0/0').split('/');
+        // 'rate' memberikan penggunaan aktual dalam bps (upload/download)
+        const [uploadRate, downloadRate] = (queue['rate'] || '0/0').split('/');
         
         // Logic to determine status based on actual traffic in the queue.
         // If there's any byte traffic (upload or download), we consider the user online.
@@ -78,8 +70,8 @@ export async function getCustomers(): Promise<Customer[]> {
             username: queue.name,
             ipAddress: (queue.target || '').split('/')[0], // Remove CIDR suffix if present
             macAddress: queue['mac-address'] || '', // Not always available in simple queues
-            upload: parseRateToMbps(uploadLimit), 
-            download: parseRateToMbps(downloadLimit),
+            upload: parseRateToMbps(uploadRate), 
+            download: parseRateToMbps(downloadRate),
             status: isOnline ? 'online' : 'offline',
             parent: queue.parent || 'none',
         };
