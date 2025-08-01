@@ -7,9 +7,29 @@
 //
 // Then, you can use it to connect to your router and fetch data.
 
-import type { Customer } from '@/lib/data';
+import type { Customer, UnregisteredIp } from '@/lib/data';
 // Anda mungkin perlu mengimpor library yang Anda install, contoh:
 import { RouterOSAPI } from 'node-routeros';
+
+async function getMikrotikConnection() {
+  const conn = new RouterOSAPI({
+      host: '103.160.179.29',
+      user: 'APK',
+      password: '12341234',
+      port: 8777,
+      timeout: 15,
+      legacy: true,
+  });
+
+  const connectionPromise = conn.connect();
+  const timeoutPromise = new Promise((_, reject) =>
+    setTimeout(() => reject(new Error('Connection timed out after 15 seconds')), 15000)
+  );
+
+  await Promise.race([connectionPromise, timeoutPromise]);
+  return conn;
+}
+
 
 // Ini adalah fungsi utama yang akan dipanggil oleh aplikasi Anda.
 export async function getCustomers(): Promise<Customer[]> {
@@ -17,31 +37,9 @@ export async function getCustomers(): Promise<Customer[]> {
     'Fetching customer data from MikroTik Simple Queues and ARP list...'
   );
 
-  // ========================================================================
-  // TODO: GANTI BAGIAN INI DENGAN KONEKSI MIKROTIK ASLI ANDA
-  // ========================================================================
-  //
-  // Kode di bawah ini adalah CONTOH ILUSTRATIF. Anda perlu menyesuaikannya.
   let conn: RouterOSAPI | null = null;
   try {
-    conn = new RouterOSAPI({
-        // GANTI DENGAN IP PUBLIK ROUTER ANDA
-        host: '103.160.179.29', // CONTOH: 123.45.67.89
-        user: 'APK',           // GANTI DENGAN USER API ANDA
-        password: '12341234', // GANTI DENGAN PASSWORD ANDA
-        port: 8777,          // GANTI DENGAN PORT PUBLIK YANG ANDA BUAT DI NAT
-        // timeout di sini adalah untuk socket setelah terhubung, bukan timeout koneksi
-        timeout: 15,
-        legacy: true, // Aktifkan mode legacy untuk RouterOS versi lama
-    });
-
-    // Implementasi timeout koneksi manual
-    const connectionPromise = conn.connect();
-    const timeoutPromise = new Promise((_, reject) => 
-      setTimeout(() => reject(new Error('Connection timed out after 15 seconds')), 15000)
-    );
-
-    await Promise.race([connectionPromise, timeoutPromise]);
+    conn = await getMikrotikConnection();
     
     // Mengambil data dari 'queue simple' dan 'ip arp' secara bersamaan
     const [simpleQueues, arpList] = await Promise.all([
@@ -91,5 +89,43 @@ export async function getCustomers(): Promise<Customer[]> {
       // if (conn && conn.connected) {
       //     conn.close();
       // }
+  }
+}
+
+export async function getUnregisteredIps(): Promise<UnregisteredIp[]> {
+  console.log("Fetching unregistered IPs from MikroTik...");
+  let conn: RouterOSAPI | null = null;
+  try {
+    conn = await getMikrotikConnection();
+
+    const [arpList, simpleQueues] = await Promise.all([
+      conn.write('/ip/arp/print'),
+      conn.write('/queue/simple/print', ['?dynamic=false']), // Hanya ambil queue statis
+    ]);
+
+    // Buat set dari alamat IP yang terdaftar di simple queues untuk pencarian cepat
+    const registeredIps = new Set(
+      simpleQueues.map((queue: any) => (queue.target || '').split('/')[0])
+    );
+    
+    // Filter ARP list untuk menemukan IP yang tidak terdaftar
+    const unregistered = arpList.filter(
+      (arp: any) => arp.address && !registeredIps.has(arp.address) && arp.dynamic === 'true' // Hanya tampilkan yg dinamis
+    );
+
+    return unregistered.map((arp: any) => ({
+      id: arp['.id'],
+      ipAddress: arp.address,
+      macAddress: arp['mac-address'],
+      interface: arp.interface,
+    }));
+
+  } catch (error) {
+    console.error("Gagal mengambil data IP liar dari MikroTik:", error);
+    return [];
+  } finally {
+    //  if (conn && conn.connected) {
+    //      conn.close();
+    //  }
   }
 }

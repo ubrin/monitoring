@@ -1,26 +1,38 @@
 'use client';
 
-import { LayoutDashboard, Users, Wifi } from 'lucide-react';
+import { LayoutDashboard, Users, ShieldAlert } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { Menu } from 'lucide-react';
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
+import { cn } from '@/lib/utils';
 
-const NavLinks = () => (
-    <nav className="flex flex-col gap-2">
-        <Button variant="default" className="justify-start gap-3" asChild>
-            <a href="#">
-                <LayoutDashboard className="h-5 w-5" />
-                <span>Dashboard</span>
-            </a>
-        </Button>
-        <Button variant="ghost" className="justify-start gap-3" asChild>
-             <a href="#">
-                <Users className="h-5 w-5" />
-                <span>Customers</span>
-            </a>
-        </Button>
-    </nav>
-);
+const navLinks = [
+    { href: '/', label: 'Dashboard', icon: LayoutDashboard },
+    { href: '/ip-liar', label: 'IP Liar', icon: ShieldAlert },
+];
+
+const NavLinks = () => {
+    const pathname = usePathname();
+    return (
+        <nav className="flex flex-col gap-2">
+            {navLinks.map(link => (
+                 <Button 
+                    key={link.href}
+                    variant={pathname === link.href ? 'default' : 'ghost'} 
+                    className="justify-start gap-3" 
+                    asChild
+                >
+                    <Link href={link.href}>
+                        <link.icon className="h-5 w-5" />
+                        <span>{link.label}</span>
+                    </Link>
+                </Button>
+            ))}
+        </nav>
+    );
+};
 
 const Sidebar = () => {
     return (
@@ -36,10 +48,12 @@ const Sidebar = () => {
                     </SheetTrigger>
                     <SheetContent side="left" className="w-64 p-4 flex flex-col">
                          <div className="flex items-center gap-2 mb-8">
-                            <div className="p-2 bg-primary rounded-lg">
-                                <Wifi className="text-primary-foreground" />
-                            </div>
-                            <h1 className="text-2xl font-headline font-bold text-foreground">TikWatch</h1>
+                            <Link href="/" className="flex items-center gap-2">
+                                <div className="p-2 bg-primary rounded-lg">
+                                    <ShieldAlert className="text-primary-foreground" />
+                                </div>
+                                <h1 className="text-2xl font-headline font-bold text-foreground">TikWatch</h1>
+                            </Link>
                         </div>
                         <NavLinks />
                     </SheetContent>
@@ -49,10 +63,12 @@ const Sidebar = () => {
             {/* Desktop Sidebar */}
             <aside className="hidden lg:flex flex-col w-64 bg-card border-r border-border p-4 space-y-8">
                 <div className="flex items-center gap-2">
-                    <div className="p-2 bg-primary rounded-lg">
-                        <Wifi className="text-primary-foreground" />
-                    </div>
-                    <h1 className="text-2xl font-headline font-bold text-foreground">TikWatch</h1>
+                     <Link href="/" className="flex items-center gap-2">
+                        <div className="p-2 bg-primary rounded-lg">
+                            <ShieldAlert className="text-primary-foreground" />
+                        </div>
+                        <h1 className="text-2xl font-headline font-bold text-foreground">TikWatch</h1>
+                    </Link>
                 </div>
                 <NavLinks />
             </aside>

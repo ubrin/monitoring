@@ -7,6 +7,13 @@ export type Customer = {
   parent?: string;
 };
 
+export type UnregisteredIp = {
+  id: string;
+  ipAddress: string;
+  macAddress: string;
+  interface: string;
+}
+
 export const customers: Customer[] = [
   {
     id: 'usr_1',

@@ -63,7 +63,7 @@ export default function DashboardPage() {
       <main className="flex-1 flex flex-col p-4 sm:p-6 lg:p-8 overflow-y-auto">
         <header className="mb-8">
           <h1 className="text-4xl font-headline font-bold text-foreground">
-            TikWatch
+            Dashboard
           </h1>
           <p className="text-muted-foreground">Real-time Mikrotik customer monitoring.</p>
         </header>
