@@ -163,7 +163,7 @@ export default function CustomerTable({
         (customer) =>
           customer.username.toLowerCase().includes(filter.toLowerCase()) ||
           customer.ipAddress.includes(filter) ||
-          customer.macAddress.toLowerCase().includes(filter.toLowerCase())
+          (customer.macAddress && customer.macAddress.toLowerCase().includes(filter.toLowerCase()))
       );
       if (filteredChildren.length > 0) {
         filteredGroups[parentKey] = filteredChildren;
