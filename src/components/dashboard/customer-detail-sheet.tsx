@@ -97,8 +97,8 @@ export function CustomerDetailSheet({
                     <Input id="ipAddress" value={editedCustomer?.ipAddress || ''} readOnly={!isEditing} onChange={handleInputChange} />
                 </div>
                  <div>
-                    <Label htmlFor="macAddress">MAC Address</Label>
-                    <Input id="macAddress" value={editedCustomer?.macAddress || ''} readOnly={!isEditing} onChange={handleInputChange} />
+                    <Label htmlFor="arpStatus">ARP Status</Label>
+                    <Input id="arpStatus" value={editedCustomer?.arpStatus || ''} readOnly className='capitalize' />
                 </div>
                 <div>
                     <Label>Status</Label>

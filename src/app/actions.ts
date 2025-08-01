@@ -14,7 +14,7 @@ import { RouterOSAPI } from 'node-routeros';
 // Ini adalah fungsi utama yang akan dipanggil oleh aplikasi Anda.
 export async function getCustomers(): Promise<Customer[]> {
   console.log(
-    'Fetching customer data from MikroTik Simple Queues...'
+    'Fetching customer data from MikroTik Simple Queues and ARP list...'
   );
 
   // ========================================================================
@@ -43,8 +43,11 @@ export async function getCustomers(): Promise<Customer[]> {
 
     await Promise.race([connectionPromise, timeoutPromise]);
     
-    // Mengambil data dari 'queue simple'
-    const simpleQueues = await conn.write('/queue/simple/print');
+    // Mengambil data dari 'queue simple' dan 'ip arp' secara bersamaan
+    const [simpleQueues, arpList] = await Promise.all([
+        conn.write('/queue/simple/print'),
+        conn.write('/ip/arp/print')
+    ]);
     
     // Ubah data dari router menjadi format yang dimengerti aplikasi
     const formattedCustomers: Customer[] = simpleQueues.map((queue: any) => {
@@ -52,11 +55,25 @@ export async function getCustomers(): Promise<Customer[]> {
         // If there's any byte traffic (upload or download), we consider the user online.
         const isOnline = (parseInt(queue.bytes?.split('/')[0] || '0') > 0 || parseInt(queue.bytes?.split('/')[1] || '0') > 0);
 
+        const ipAddress = (queue.target || '').split('/')[0];
+        const arpEntry = arpList.find((arp: any) => arp.address === ipAddress);
+
+        let arpStatus: Customer['arpStatus'] = 'unknown';
+        if (arpEntry) {
+            if (arpEntry.disabled === 'true') {
+                arpStatus = 'disabled';
+            } else if (arpEntry.dynamic === 'false') {
+                arpStatus = 'static';
+            } else {
+                arpStatus = 'dynamic';
+            }
+        }
+        
         return {
             id: queue['.id'] || `queue_${queue.name}`,
             username: queue.name,
-            ipAddress: (queue.target || '').split('/')[0], // Remove CIDR suffix if present
-            macAddress: queue['mac-address'] || '', // Not always available in simple queues
+            ipAddress: ipAddress, // Remove CIDR suffix if present
+            arpStatus: arpStatus,
             status: isOnline ? 'online' : 'offline',
             parent: queue.parent || 'none',
         };

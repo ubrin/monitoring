@@ -73,7 +73,12 @@ const ChildCustomerTable = React.memo(({
                 <ArrowUpDown className="ml-2 h-4 w-4" />
               </Button>
             </TableHead>
-            <TableHead className="hidden md:table-cell">MAC Address</TableHead>
+            <TableHead className="hidden md:table-cell">
+               <Button variant="ghost" size="sm" onClick={() => handleSort('arpStatus')}>
+                ARP Status
+                <ArrowUpDown className="ml-2 h-4 w-4" />
+              </Button>
+            </TableHead>
              <TableHead className="text-center">
                 Status
             </TableHead>
@@ -93,7 +98,7 @@ const ChildCustomerTable = React.memo(({
                 {customer.username}
               </TableCell>
               <TableCell>{customer.ipAddress}</TableCell>
-              <TableCell className="hidden md:table-cell">{customer.macAddress}</TableCell>
+              <TableCell className="hidden md:table-cell capitalize">{customer.arpStatus}</TableCell>
               <TableCell className="text-center">
                  <div className="flex items-center justify-center gap-3">
                   <span
@@ -164,7 +169,7 @@ export default function CustomerTable({
         (customer) =>
           customer.username.toLowerCase().includes(filter.toLowerCase()) ||
           customer.ipAddress.includes(filter) ||
-          (customer.macAddress && customer.macAddress.toLowerCase().includes(filter.toLowerCase()))
+          (customer.arpStatus && customer.arpStatus.toLowerCase().includes(filter.toLowerCase()))
       );
       if (filteredChildren.length > 0) {
         filteredGroups[parentKey] = filteredChildren;
@@ -210,7 +215,7 @@ export default function CustomerTable({
         <div className="relative mt-2">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder="Filter by name, IP, or MAC..."
+            placeholder="Filter by name, IP, or ARP status..."
             value={filter}
             onChange={(e) => setFilter(e.target.value)}
             className="pl-10"
