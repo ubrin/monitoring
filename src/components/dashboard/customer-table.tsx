@@ -11,7 +11,7 @@ import {
 } from '@/components/ui/table';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { ArrowUpDown, BarChart2, Search, Users } from 'lucide-react';
+import { ArrowUpDown, Search, Users } from 'lucide-react';
 import { type Customer } from '@/lib/data';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
@@ -74,10 +74,8 @@ const ChildCustomerTable = React.memo(({
               </Button>
             </TableHead>
             <TableHead className="hidden md:table-cell">MAC Address</TableHead>
-            <TableHead className="text-center">
-              <div className="flex items-center justify-center gap-2">
-                <BarChart2 className="h-4 w-4" /> Usage (Mbps)
-              </div>
+             <TableHead className="text-center">
+                Status
             </TableHead>
           </TableRow>
         </TableHeader>
@@ -92,20 +90,20 @@ const ChildCustomerTable = React.memo(({
               )}
             >
               <TableCell className="font-medium">
-                <div className="flex items-center gap-3">
-                  <span
-                    className={cn(
-                      'h-2.5 w-2.5 rounded-full transition-colors duration-300', // Added transition for smooth color change
-                      customer.status === 'online' ? 'bg-green-500' : 'bg-red-500'
-                    )}
-                  ></span>
-                  {customer.username}
-                </div>
+                {customer.username}
               </TableCell>
               <TableCell>{customer.ipAddress}</TableCell>
               <TableCell className="hidden md:table-cell">{customer.macAddress}</TableCell>
               <TableCell className="text-center">
-                {customer.download.toFixed(2)} / {customer.upload.toFixed(2)}
+                 <div className="flex items-center justify-center gap-3">
+                  <span
+                    className={cn(
+                      'h-2.5 w-2.5 rounded-full transition-colors duration-300',
+                      customer.status === 'online' ? 'bg-green-500' : 'bg-red-500'
+                    )}
+                  ></span>
+                  <span className='capitalize'>{customer.status}</span>
+                </div>
               </TableCell>
             </TableRow>
           ))}

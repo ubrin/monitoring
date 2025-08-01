@@ -15,7 +15,7 @@ import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/hooks/use-toast';
 import type { Customer } from '@/lib/data';
 import { cn } from '@/lib/utils';
-import { BarChart2, Edit, Trash2, WifiOff } from 'lucide-react';
+import { Edit, Trash2, WifiOff } from 'lucide-react';
 import * as React from 'react';
 
 interface CustomerDetailSheetProps {
@@ -100,20 +100,11 @@ export function CustomerDetailSheet({
                     <Label htmlFor="macAddress">MAC Address</Label>
                     <Input id="macAddress" value={editedCustomer?.macAddress || ''} readOnly={!isEditing} onChange={handleInputChange} />
                 </div>
-                <div className="flex items-center space-x-4">
-                    <div className='flex-1'>
-                        <Label>Status</Label>
-                        <div className="flex items-center gap-2 mt-1">
-                            <span className={cn("h-2.5 w-2.5 rounded-full", customer.status === 'online' ? 'bg-green-500' : 'bg-red-500')} />
-                            <span className='capitalize'>{customer.status}</span>
-                        </div>
-                    </div>
-                    <div className='flex-1'>
-                         <Label>Usage</Label>
-                        <div className="flex items-center gap-2 mt-1">
-                            <BarChart2 className="h-4 w-4 text-muted-foreground" />
-                            <span>{customer.download.toFixed(2)} / {customer.upload.toFixed(2)} Mbps</span>
-                        </div>
+                <div>
+                    <Label>Status</Label>
+                    <div className="flex items-center gap-2 mt-1">
+                        <span className={cn("h-2.5 w-2.5 rounded-full", customer.status === 'online' ? 'bg-green-500' : 'bg-red-500')} />
+                        <span className='capitalize'>{customer.status}</span>
                     </div>
                 </div>
             </div>
