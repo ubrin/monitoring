@@ -15,12 +15,10 @@ import { ArrowUpDown, Search, ShieldAlert } from 'lucide-react';
 import { type UnregisteredIp } from '@/lib/data';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { useToast } from '@/hooks/use-toast';
 
 type SortKey = keyof UnregisteredIp;
 
 export default function IpLiarTable({ unregisteredIps }: { unregisteredIps: UnregisteredIp[] }) {
-  const { toast } = useToast();
   const [filter, setFilter] = React.useState('');
   const [sortConfig, setSortConfig] = React.useState<{
     key: SortKey;
@@ -64,15 +62,6 @@ export default function IpLiarTable({ unregisteredIps }: { unregisteredIps: Unre
     return sortableItems;
   }, [unregisteredIps, filter, sortConfig]);
 
-  const handleAddToQueue = (ip: UnregisteredIp) => {
-    // This is a placeholder for the actual API call
-    console.log('Adding to queue:', ip);
-    toast({
-        title: 'Fungsi Belum Tersedia',
-        description: `Fitur untuk menambahkan ${ip.ipAddress} ke queue akan diimplementasikan.`,
-    })
-  }
-
   return (
     <Card className="flex-1 flex flex-col h-full">
       <CardHeader>
@@ -112,7 +101,6 @@ export default function IpLiarTable({ unregisteredIps }: { unregisteredIps: Unre
                   <ArrowUpDown className="ml-2 h-4 w-4" />
                 </Button>
               </TableHead>
-              <TableHead className="text-right">Aksi</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -121,16 +109,11 @@ export default function IpLiarTable({ unregisteredIps }: { unregisteredIps: Unre
                 <TableCell className="font-mono">{ip.ipAddress}</TableCell>
                 <TableCell className="font-mono">{ip.macAddress}</TableCell>
                 <TableCell>{ip.interface}</TableCell>
-                <TableCell className="text-right">
-                    <Button variant="outline" size="sm" onClick={() => handleAddToQueue(ip)}>
-                        Add to Queue
-                    </Button>
-                </TableCell>
               </TableRow>
             ))}
              {sortedAndFilteredIps.length === 0 && (
                 <TableRow>
-                    <TableCell colSpan={4} className="h-24 text-center">
+                    <TableCell colSpan={3} className="h-24 text-center">
                     <ShieldAlert className="mx-auto h-8 w-8 text-green-500 mb-2" />
                     <p className='font-medium'>Aman!</p>
                     <p className='text-muted-foreground'>Tidak ada IP liar yang terdeteksi.</p>
