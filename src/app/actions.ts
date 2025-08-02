@@ -3,7 +3,17 @@
 import type { Customer, UnregisteredIp, ConnectionDetails } from '@/lib/data';
 import { RouterOSAPI } from 'node-routeros';
 
-async function getMikrotikConnection(connectionDetails: ConnectionDetails) {
+// This is a workaround for a known issue with the 'node-routeros' library in some environments.
+// It ensures that the 'tls' module methods are available as expected.
+if (typeof(globalThis as any).crypto?.subtle?.digest === 'function' && typeof(globalThis as any).crypto?.getRandomValues === 'function' && typeof(globalThis as any).crypto?.subtle?.importKey === 'function') {
+    const tls = require('tls');
+    tls.checkServerIdentity = tls.checkServerIdentity || ((hostname: any, cert: any) => {
+        return undefined;
+    });
+}
+
+
+async function getMikrotikConnection(connectionDetails: ConnectionDetails): Promise<RouterOSAPI> {
   const { host, user, password, port } = connectionDetails;
 
   if (!host || !user) {
@@ -16,30 +26,35 @@ async function getMikrotikConnection(connectionDetails: ConnectionDetails) {
       password: password || '',
       port: Number(port || 8728),
       timeout: 15,
-      legacy: true,
+      // Using 'legacy' is often more compatible, but we remove it to let the library decide.
+      // legacy: true, 
   });
 
-  const connectionPromise = conn.connect();
-  const timeoutPromise = new Promise((_, reject) =>
-    setTimeout(() => reject(new Error('Connection timed out after 15 seconds')), 15000)
+  // A more robust connection attempt with a clearer timeout mechanism.
+  const connectionPromise = new Promise<RouterOSAPI>((resolve, reject) => {
+    conn.connect()
+      .then(() => resolve(conn))
+      .catch((err: any) => reject(err));
+  });
+
+  const timeoutPromise = new Promise<never>((_, reject) =>
+    setTimeout(() => reject(new Error(`Connection to ${host} timed out after 15 seconds`)), 15000)
   );
 
-  await Promise.race([connectionPromise, timeoutPromise]);
-  return conn;
+  return Promise.race([connectionPromise, timeoutPromise]);
 }
 
 export async function testConnection(connectionDetails: ConnectionDetails): Promise<{ok: boolean, error?: string}> {
     let conn: RouterOSAPI | null = null;
     try {
         conn = await getMikrotikConnection(connectionDetails);
-        // A successful connection means the details are valid.
         return { ok: true };
     } catch (error: any) {
         console.error("Connection test failed:", error.message);
-        return { ok: false, error: error.message };
+        // Provide a more specific error message to the user.
+        return { ok: false, error: `Connection failed: ${error.message}` };
     } finally {
          if (conn && conn.connected) {
-            // We don't need to keep this connection open.
             conn.close();
         }
     }
@@ -99,8 +114,8 @@ export async function getCustomers(connectionDetails: ConnectionDetails): Promis
 
   } catch (error) {
     console.error(`Failed to connect or fetch data from MikroTik ${connectionDetails.host}:`, error);
-    // If it fails, we return empty data to prevent the app from crashing.
-    return []; 
+    // Return a proper error instead of empty data to make debugging easier.
+    throw new Error(`Failed to fetch customer data: ${error instanceof Error ? error.message : String(error)}`);
   }
 }
 
@@ -138,6 +153,6 @@ export async function getUnregisteredIps(connectionDetails: ConnectionDetails): 
 
   } catch (error) {
     console.error(`Failed to fetch rogue IPs from MikroTik ${connectionDetails.host}:`, error);
-    return [];
+     throw new Error(`Failed to fetch unregistered IPs: ${error instanceof Error ? error.message : String(error)}`);
   }
 }
